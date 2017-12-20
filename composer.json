@@ -1,0 +1,9 @@
+{
+	"name": "a.fenric/guayaquillib",
+	"version": "1.0.0",
+	"scripts": {
+		"pre-autoload-dump": [
+			"@php bin/patch-classes"
+		]
+	}
+}
