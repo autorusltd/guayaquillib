@@ -1,17 +1,15 @@
 <?php
 
-echo "123132132\n\n";
-
 if ($file = realpath(__DIR__ . '/../src/data/request.php'))
 {
 	file_put_contents($file, preg_replace('/^<\?(?:php)?/', "<?php\n\nnamespace Autorus\\Laximo\\Guayaquillib\\Request;\n\n", file_get_contents($file)));
 
-	echo "test\n";
+	echo "request.php patched.\n";
 }
 
 if ($file = realpath(__DIR__ . '/../src/data/requestAm.php'))
 {
 	file_put_contents($file, preg_replace('/^<\?(?:php)?/', "<?php\n\nnamespace Autorus\\Laximo\\Guayaquillib\\RequestAm;\n\n", file_get_contents($file)));
 
-	echo "test\n";
+	echo "requestAm.php patched.\n";
 }

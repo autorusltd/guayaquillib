@@ -2,7 +2,7 @@
 	"name": "autorus/guayaquillib",
 	"scripts": {
 		"post-package-install": [
-			"@php vendor/autorus/guayaquillib/bin/patch-classes"
+			"@php -r \"echo 'test' . PHP_EOL;\""
 		]
 	}
 }
