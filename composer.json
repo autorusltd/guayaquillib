@@ -1,8 +1,8 @@
 {
 	"name": "autorus/guayaquillib",
 	"scripts": {
-		"pre-autoload-dump": [
-			"@php bin/patch-classes"
+		"post-package-install": [
+			"@php vendor/autorus/guayaquillib/bin/patch-classes"
 		]
 	}
 }
