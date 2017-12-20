@@ -1,8 +1,6 @@
 {
 	"name": "autorus/guayaquillib",
-	"scripts": {
-		"post-package-install": [
-			"@php -r \"echo 'test' . PHP_EOL;\""
-		]
+	"autoload": {
+		"classmap": ["src/data"]
 	}
 }

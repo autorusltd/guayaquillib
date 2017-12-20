@@ -1,8 +1,10 @@
 <?php
 
+namespace Autorus\Laximo;
+
 require_once('soap.php');
 
-class GuayaquilRequest
+class GuayaquilRequestAm
 {
 	//	Function parameters
 	public $locale;
