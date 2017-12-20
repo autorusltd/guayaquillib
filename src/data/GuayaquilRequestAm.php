@@ -1,7 +1,5 @@
 <?php
 
-namespace Autorus\Laximo;
-
 require_once('soap.php');
 
 class GuayaquilRequestAm
