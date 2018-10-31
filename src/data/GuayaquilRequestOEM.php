@@ -1,7 +1,5 @@
 <?php
 
-require_once('soap.php');
-
 interface IGuayquilCache
 {
     function GetCachedData($request);
@@ -9,26 +7,24 @@ interface IGuayquilCache
 }
 
 
-class GuayaquilRequest
+class GuayaquilRequestOEM
 {
 	//	Function parameters
-	var $locale;
-	var $catalog;
-	var $ssd;
-	var $cache;
+    protected $locale;
+    protected $catalog;
+    protected $ssd;
+    protected $cache;
 
 	// Temporary varibles
-	var $queries = array();
+    protected $queries = array();
 
-	//RequestParams
-	var $certificatePath = '';
-	
 	// soap wrapper object
-	var $soap;
+    /** @var \GuayaquilSoapWrapper */
+	private $soap;
 
 	//	Results
-	var $error;
-	var $data;
+	public $error;
+    public $data;
 
     function __construct($catalog = '', $ssd = '', $locale = 'ru_RU', IGuayquilCache $cache = null)
     {
@@ -37,6 +33,12 @@ class GuayaquilRequest
         $this->ssd = $this->checkParam($ssd);
         $this->cache = $cache;
         $this->soap = new GuayaquilSoapWrapper();
+        $this->soap->setCertificateAuthorizationMethod();
+    }
+
+    public function setUserAuthorizationMethod($login, $key)
+    {
+        $this->soap->setUserAuthorizationMethod($login, $key);
     }
 
     function checkParam($value)
@@ -74,29 +76,21 @@ class GuayaquilRequest
     function appendGetCatalogInfo()
     {
 		$this->appendCommand('GetCatalogInfo', array('Locale' => $this->locale, 'Catalog' => $this->catalog, 'ssd' => $this->ssd));
-    }	
+    }
 
     function appendListCatalogs()
     {
 		$this->appendCommand('ListCatalogs', array('Locale' => $this->locale, 'ssd' => $this->ssd));
-    }	
+    }
 
     function appendFindVehicleByVIN($vin)
     {
 		$this->appendCommand('FindVehicleByVIN', array('Locale' => $this->locale, 'Catalog' => $this->catalog, 'VIN' => $this->checkParam($vin), 'ssd' => $this->ssd, 'Localized' => 'true'));
-    }	
+    }
 
     function appendFindVehicleByFrame($frame, $frameNo)
     {
         $this->appendCommand('FindVehicleByFrame', array('Locale' => $this->locale, 'Catalog' => $this->catalog, 'Frame' => $this->checkParam($frame), 'FrameNo' => $this->checkParam($frameNo), 'ssd' => $this->ssd, 'Localized' => 'true'));
-    }
-
-    /**
-     * @deprecated
-     */
-    function appendFindVehicleByWizard($wizardid)
-    {
-        $this->appendCommand('FindVehicleByWizard', array('Locale' => $this->locale, 'Catalog' => $this->catalog, 'WizardId' => $this->checkParam($wizardid), 'ssd' => $this->ssd, 'Localized' => 'true'));
     }
 
     function appendFindVehicleByWizard2($ssd)
@@ -134,14 +128,6 @@ class GuayaquilRequest
         $this->appendCommand('ListDetailByUnit', array('Locale' => $this->locale, 'Catalog' => $this->catalog, 'UnitId' => $this->checkParam($unitid), 'ssd' => $this->ssd, 'Localized' => 'true'));
     }
 
-    /**
-     * @deprecated
-     */
-    function appendGetWizard($wizardid = '', $valueid = '')
-    {
-        $this->appendCommand('GetWizard', array('Locale' => $this->locale, 'Catalog' => $this->catalog, 'WizardId' => $this->checkParam($wizardid), 'ValueId' => $this->checkParam($valueid)));
-    }
-
     function appendGetWizard2($ssd = false)
     {
         $this->appendCommand('GetWizard2', array('Locale' => $this->locale, 'Catalog' => $this->catalog, 'ssd' => $this->checkParam($ssd)));
@@ -162,6 +148,12 @@ class GuayaquilRequest
         $this->appendCommand('ListQuickGroup', array('Locale' => $this->locale, 'Catalog' => $this->catalog, 'VehicleId' => $this->checkParam($vehicle_id), 'ssd' => $this->ssd));
     }
 
+    function appendFindVehicleCustom($searchType, $searchParams)
+    {
+        $params = array('Locale' => $this->locale, 'Catalog' => $this->catalog, 'Code' => $this->checkParam($searchType));
+        $this->appendCommand('FindVehicleCustom', $searchParams && is_array($searchParams) ? array_merge($params, $searchParams) : $params);
+    }
+
     function appendListQuickDetail($vehicle_id, $group_id, $all = 0)
     {
         $params = array('Locale' => $this->locale, 'Catalog' => $this->catalog, 'VehicleId' => $this->checkParam($vehicle_id), 'QuickGroupId' => $group_id, 'ssd' => $this->ssd, 'Localized' => 'true');
@@ -177,11 +169,18 @@ class GuayaquilRequest
         $this->appendCommand('FindDetailApplicability', array('Locale' => $this->locale, 'OEM' => $this->checkParam($oem), 'Brand' => $brand, 'Localized' => 'true'));
     }
 
+
+    public function appendExecCustomOperation($operation, $data)
+    {
+        if (!is_array($data)) {
+            $data = array();
+        }
+
+        $this->appendCommand('ExecCustomOperation', array_merge(array('Locale' => $this->locale, 'Catalog' => $this->catalog, 'operation' => $this->checkParam($operation)), $data));
+    }
+
     function query()
 	{
-		if ($this->certificatePath != '')
-			$this->soap->certificatePath = $this->certificatePath;
-
         $result = array();
         $request = array();
         $count = count($this->queries);
@@ -226,12 +225,12 @@ class GuayaquilRequest
                 {
                     if (!$this->_query($query, $indexes, $result))
                         return false;
-                    
+
                     $commands_index = 0;
                     $query = '';
                     $indexes = array();
                 }
-                
+
                 $commands_index ++;
             }
 
@@ -248,9 +247,9 @@ class GuayaquilRequest
     function _query($query, $indexes, &$result)
     {
         $data = $this->soap->queryData($query);
-        if ($this->soap->error)
+        if ($this->soap->getError())
         {
-            $this->error = $this->soap->error;
+            $this->error = $this->soap->getError();
             return false;
         }
 

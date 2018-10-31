@@ -72,7 +72,7 @@ class SSLSoapClient extends SoapClient
         }
 
         $this->lastResponse = curl_exec($this->curlHandle);
-
+		
         $httpCode = curl_getinfo($this->curlHandle, CURLINFO_HTTP_CODE);
         if ($httpCode >= 400) {
             $xml = simplexml_load_string($this->lastResponse, 'SimpleXMLElement', 0, 'soapenv', true);
@@ -140,14 +140,16 @@ class SSLSoapClient extends SoapClient
         curl_setopt($this->curlHandle, CURLOPT_FORBID_REUSE, true);
         curl_setopt($this->curlHandle, CURLOPT_FRESH_CONNECT, true);
 
+        curl_setopt($this->curlHandle, CURLOPT_ENCODING, 'gzip,deflate');
+
         curl_setopt($this->curlHandle, CURLOPT_HTTPHEADER, array("Content-Type: text/xml; charset=utf-8", 'Expect:',));
         curl_setopt($this->curlHandle, CURLOPT_POST, true);
 
-        if ($this->options['sslCertPath']) {
+        if (in_array('sslCertPath', $this->options)) {
             $this->setSslCert($this->options['sslCertPath']);
         }
 
-        if ($this->options['sslKeyPath']) {
+        if (in_array('sslKeyPath', $this->options)) {
             $this->setSslKey($this->options['sslKeyPath']);
         }
 
