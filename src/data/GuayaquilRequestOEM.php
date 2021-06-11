@@ -118,6 +118,16 @@ class GuayaquilRequestOEM
         $this->appendCommand('GetUnitInfo', array('Locale' => $this->locale, 'Catalog' => $this->catalog, 'UnitId' => $this->checkParam($unitid), 'ssd' => $this->ssd, 'Localized' => 'true'));
     }
 
+    function appendFindPartReferences($article)
+    {
+        $this->appendCommand('FINDPARTREFERENCES', array('Locale' => $this->locale, 'OEM' => $article));
+    }
+
+    function appendFindApplicableVehicles($article, $catalogCode)
+    {
+        $this->appendCommand('FindApplicableVehicles', array('Locale' => $this->locale, 'OEM' => $article, 'Catalog'=> $catalogCode));
+    }
+
     function appendListImageMapByUnit($unitid)
     {
         $this->appendCommand('ListImageMapByUnit', array('Catalog' => $this->catalog, 'UnitId' => $this->checkParam($unitid), 'ssd' => $this->ssd));
