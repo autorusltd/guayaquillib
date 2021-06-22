@@ -179,6 +179,21 @@ class GuayaquilRequestOEM
         $this->appendCommand('FindDetailApplicability', array('Locale' => $this->locale, 'OEM' => $this->checkParam($oem), 'Brand' => $brand, 'Localized' => 'true'));
     }
 
+    function GetOEMPartApplicability($article, $catalog_code, $ssd, $all = 0)
+    {
+        $params = array(
+            'Locale' => $this->locale,
+            'Catalog' => $catalog_code,
+            'OEM' => $article,
+            'ssd' => $ssd,
+            'All' => 0
+        );
+
+        if ($all)
+            $params['All'] = 1;
+
+        $this->appendCommand('GetOEMPartApplicability', $params);
+    }
 
     public function appendExecCustomOperation($operation, $data)
     {
